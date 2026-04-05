@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+venv/
+.DS_Store
+generated_pdfs/
+
+
+type: short description in present tense
