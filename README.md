@@ -6,7 +6,7 @@
 [Link here]
 
 # What it does
-One paragraph. Plain English. No jargon
+Paste a job description. Get a tailored resume. Download as PDF
 
 ## How It works
 1. User pastes their resume
@@ -16,7 +16,7 @@ One paragraph. Plain English. No jargon
 
 ## Tech Stack
 - Python + Flask
-- Kimi API (AI rewriting)
+- OpenRouter API (AI rewriting)
 - WeasyPrint (PDF generation)
 
 ## Run Locally
