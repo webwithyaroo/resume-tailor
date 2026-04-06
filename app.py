@@ -52,7 +52,7 @@ def home():
         filter_token = [word for word in tokens if word not in stop_words]
         
         # Remove punctuation
-        remove_punc = [char for char in filter_token if char.isalpha()]
+        clean_tokens = [char for char in filter_token if char.isalpha()]
         
         
         for item in phrases:
@@ -60,7 +60,7 @@ def home():
             
             
         # Remove words part of the phrases
-        filter_keywords = [words for words in remove_punc if words not in phrase_word_list]
+        filter_keywords = [words for words in clean_tokens if words not in phrase_word_list]
         
         
         # Filter words > 3 only
