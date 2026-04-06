@@ -14,6 +14,12 @@ def home():
     Returns:
         string: the output string
     """
+    
+    keywords = []
+    phrases = []
+    phrase_word_list = []
+    phrase_list = ["rest api", "machine learning"]
+    
     if request.method == "POST":
         
         resume = request.form.get("resume")
@@ -33,28 +39,44 @@ def home():
         stop_words = set(stopwords.words("english"))
         normalized_job_desc = job_desc.lower()
         
+        # Find the phrase list in the job_desc
+        for phrase in phrase_list:
+            if phrase in normalized_job_desc:
+                phrases.append(phrase)
+        
+        
         # Split normalized job_desc
         tokens = word_tokenize(normalized_job_desc)
         
-        remove_punc = [char for char in tokens if char.isalpha() or char.isspace()]
+        # Remove stop-words
+        filter_token = [word for word in tokens if word not in stop_words]
         
-        # Filter token list
-        filter_token = [word for word in remove_punc if word not in stop_words]
+        # Remove punctuation
+        remove_punc = [char for char in filter_token if char.isalpha()]
+        
+        
+        for item in phrases:
+            phrase_word_list += item.split()
+            
+            
+        # Remove words part of the phrases
+        filter_keywords = [words for words in remove_punc if words not in phrase_word_list]
+        
         
         # Filter words > 3 only
-        filter_small_char = [ char for char in filter_token if len(char) >= 3]
+        keywords = [ char for char in filter_keywords if len(char) >= 3]
         
-       
-
-        print(filter_small_char)
+        
+        
+        
+        
+        print(f"{phrases} \n{keywords}")
+        
         print("------ JOB DESC END ------")
         
         
         
-        
-        
-        
-        
+    
         
         return f"""
         <h2>Resume received</h2>
