@@ -1,4 +1,3 @@
-
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -6,12 +5,12 @@ nltk.download('stopwords')
 nltk.download('punkt')
 
 
-def resume_tailor(resume_details):
-        
-    """ This block of code filters stopwords from the resume and return a clean set of keywords"""
+def job_description(job_details):
     
-    resume_keywords = []
-    resume_phrases = []
+    """ This block of code filters stopwords from the job and return a clean set of keywords"""
+    
+    job_keywords = []
+    job_phrases = []
     phrase_word_list = []
     phrase_list = ["rest api", "machine learning"]
     
@@ -20,16 +19,16 @@ def resume_tailor(resume_details):
     
     
     # Words to lowercase
-    normalized_resume = resume_details.lower()
+    normalized_job = job_details.lower()
     
-    # Find the phrase list in the resume
+    # Find the phrase list in the job
     for phrase in phrase_list:
-        if phrase in normalized_resume:
-            resume_phrases.append(phrase)
+        if phrase in normalized_job:
+            job_phrases.append(phrase)
     
     
-    # Split normalized resume
-    tokens = word_tokenize(normalized_resume)
+    # Split normalized job
+    tokens = word_tokenize(normalized_job)
     
     # Remove stop-words
     filter_token = [word for word in tokens if word not in stop_words]
@@ -38,7 +37,7 @@ def resume_tailor(resume_details):
     clean_tokens = [char for char in filter_token if char.isalpha()]
     
     
-    for item in resume_phrases:
+    for item in job_phrases:
         phrase_word_list += item.split()
         
         
@@ -47,10 +46,10 @@ def resume_tailor(resume_details):
     
     
     # Filter words > 3 only
-    resume_keywords += [ char for char in filter_keywords if len(char) >= 3]
+    job_keywords += [ char for char in filter_keywords if len(char) >= 3]
     
     
-    return resume_phrases, resume_keywords
+    return job_phrases, job_keywords
     
     
 if __name__ == "__main__":
