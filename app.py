@@ -10,11 +10,20 @@ app = Flask(__name__)
 def home():
     
     if request.method == "POST":
-        job = request.form.get("job")
-        resume = request.form.get("resume")
+        
+        job = request.form.get('job') 
+        resume = request.form.get('resume') 
+        
+        
+        # validate inputs
+
+        if not job or resume or resume is None or job is None:
+            return "Please provide your resume and job description", 400
+            
         
         
         print("Resume started")
+        
         
         # resume actions
         resume_processor = resume_tailor(resume_details = resume)
@@ -37,7 +46,7 @@ def home():
             <p>{job[:50]} ....</p>
         """
     
-    return render_template("form.html")
+    return  render_template("form.html")
 
 
 

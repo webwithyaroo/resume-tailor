@@ -10,5 +10,6 @@
         "venv",
         "Weasy",
         "Yaroo"
-    ]
+    ],
+    "python.analysis.typeCheckingMode": "standard"
 }

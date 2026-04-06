@@ -5,7 +5,7 @@ nltk.download('stopwords')
 nltk.download('punkt')
 
 
-def job_description(job_details):
+def job_description(job_details)-> tuple[list, list]:
     
     """ This block of code filters stopwords from the job and return a clean set of keywords"""
     
