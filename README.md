@@ -23,7 +23,7 @@ Paste a job description. Get a tailored resume. Download as PDF
 Step by step instruction here
 
 ## Environment Variables
-kIMI_API_KEY =your_key_here
+OPENROUTER_API_KEY =your_key_here
 
 ## Author 
 Issa Yaroo
