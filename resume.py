@@ -1,0 +1,57 @@
+
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+nltk.download('stopwords')
+nltk.download('punkt')
+
+
+def resume_tailor(resume_text):
+        
+    """ This block of code filters stopwords from the resume and return a clean set of keywords"""
+    
+    resume_keywords = []
+    resume_phrases = []
+    phrase_word_list = []
+    phrase_list = ["rest api", "machine learning"]
+    
+    
+    stop_words = set(stopwords.words("english"))
+    
+    
+    # Words to lowercase
+    normalized_resume = resume_text.lower()
+    
+    # Find the phrase list in the resume
+    for phrase in phrase_list:
+        if phrase in normalized_resume:
+            resume_phrases.append(phrase)
+    
+    
+    # Split normalized resume
+    tokens = word_tokenize(normalized_resume)
+    
+    # Remove stop-words
+    filter_token = [word for word in tokens if word not in stop_words]
+    
+    # Remove punctuation
+    clean_tokens = [char for char in filter_token if char.isalpha()]
+    
+    
+    for item in resume_phrases:
+        phrase_word_list += item.split()
+        
+        
+    # Remove words part of the phrases
+    filter_keywords = [words for words in clean_tokens if words not in phrase_word_list]
+    
+    
+    # Filter words > 3 only
+    resume_keywords += [ char for char in filter_keywords if len(char) >= 3]
+    
+    
+    return resume_phrases, resume_keywords
+    
+    
+if __name__ == "__main__":
+    print("hello")
