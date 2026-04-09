@@ -27,7 +27,7 @@ def home():
         
         # resume actions
         resume_processor = resume_tailor(resume_details = resume)
-        print(resume_processor)
+        # print(resume_processor)
         
         
         print("+" *40)
@@ -35,9 +35,8 @@ def home():
         
         # job actions
         job_processor = job_description(job_details = job)
-        print(job_processor)
         
-    
+        
         
         return f"""
             <h2>Resume received</h2>
