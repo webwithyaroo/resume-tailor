@@ -15,8 +15,6 @@ def home():
         resume = request.form.get('resume') 
         
         
-        
-        
         if not job or not resume or resume is None or job is None:
             return "Please provide your resume and job description"
         
@@ -25,7 +23,12 @@ def home():
         
         # resume actions
         resume_processor = resume_tailor(resume_details = resume)
-        print(resume_processor)
+        
+        # resume keywords and phrases
+        resume_phrases = resume_processor[0]
+        resume_keywords = resume_processor[1]
+        
+        
         
         
         print("+" *40)
@@ -34,9 +37,23 @@ def home():
         # job actions
         job_processor = job_description(job_details = job)
         
+        # job keywords and phrases
+        job_phrases = job_processor[0]
+        job_keywords = job_processor[1]
         
-        print(job_description)
         
+        
+        
+        
+        missing_phrases = set(job_phrases) - set(resume_phrases)
+        missing_keywords = set(job_keywords) - set(resume_keywords)
+        
+        
+        
+        print("Missing phrases: ", missing_phrases)
+        print("Missing keywords: ", missing_keywords)
+        
+           
         # missing_phrases
         return f"""
             <h2>Resume received</h2>
