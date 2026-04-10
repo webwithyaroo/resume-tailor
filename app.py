@@ -49,9 +49,13 @@ def home():
         missing_keywords = set(job_keywords) - set(resume_keywords)
         
         
-        
-        print("Missing phrases: ", missing_phrases)
-        print("Missing keywords: ", missing_keywords)
+        # converting sets to lists for better display
+        converting_missing_phrases = [*missing_phrases]
+        converting_missing_keywords = [*missing_keywords]
+
+
+        print("Missing phrases: ", converting_missing_phrases)
+        print("Missing keywords: ", converting_missing_keywords)
         
            
         # missing_phrases
