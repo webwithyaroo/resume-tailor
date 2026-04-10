@@ -42,9 +42,7 @@ def home():
         job_keywords = job_processor[1]
         
         
-        
-        
-        
+        # comparing the resume and job description keywords and phrases
         missing_phrases = set(job_phrases) - set(resume_phrases)
         missing_keywords = set(job_keywords) - set(resume_keywords)
         
