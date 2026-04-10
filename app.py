@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template
 from resume import resume_tailor
 from job import job_description
-
+import time 
 
 
 app = Flask(__name__)
@@ -15,19 +15,17 @@ def home():
         resume = request.form.get('resume') 
         
         
-        # validate inputs
-
-        if not job or resume or resume is None or job is None:
-            return "Please provide your resume and job description", 400
-            
         
+        
+        if not job or not resume or resume is None or job is None:
+            return "Please provide your resume and job description"
         
         print("Resume started")
         
         
         # resume actions
         resume_processor = resume_tailor(resume_details = resume)
-        # print(resume_processor)
+        print(resume_processor)
         
         
         print("+" *40)
@@ -37,7 +35,9 @@ def home():
         job_processor = job_description(job_details = job)
         
         
+        print(job_description)
         
+        # missing_phrases
         return f"""
             <h2>Resume received</h2>
             <p>{resume[:50]} .....</p>
