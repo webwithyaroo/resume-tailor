@@ -1,8 +1,7 @@
 from flask import Flask, request, render_template
 from resume import resume_tailor
 from job import job_description
-import time 
-
+from matcher import match_resume_to_job
 
 app = Flask(__name__)
 
@@ -37,24 +36,22 @@ def home():
         # job actions
         job_processor = job_description(job_details = job)
         
-        # job keywords and phrases
-        job_phrases = job_processor[0]
-        job_keywords = job_processor[1]
+        
+        missing = match_resume_to_job(resume_processor, job_processor)
+        
+        print("+" *40)
         
         
-        # comparing the resume and job description keywords and phrases
-        missing_phrases = set(job_phrases) - set(resume_phrases)
-        missing_keywords = set(job_keywords) - set(resume_keywords)
+        print("Missing keywords:")
+        print(missing[0])
         
+        print("Missing phrases:")
+        print(missing[1])   
         
-        # converting sets to lists for better display
-        converting_missing_phrases = [*missing_phrases]
-        converting_missing_keywords = [*missing_keywords]
-
-
-        print("Missing phrases: ", converting_missing_phrases)
-        print("Missing keywords: ", converting_missing_keywords)
-        
+       
+            
+            
+      
            
         # missing_phrases
         return f"""
