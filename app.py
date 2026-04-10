@@ -48,11 +48,7 @@ def home():
         print("Missing phrases:")
         print(missing[1])   
         
-       
-            
-            
-      
-           
+
         # missing_phrases
         return f"""
             <h2>Resume received</h2>
