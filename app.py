@@ -14,7 +14,7 @@ def home():
         job = request.form.get('job')
         resume = request.form.get('resume')
 
-        if not job or not resume:
+        if not job or not resume :
             return "Please provide your resume and job description"
 
         print("Resume started")
@@ -33,11 +33,11 @@ def home():
         job_phrases = job_processor["phrases"]
 
         # missing = match_resume_to_job(resume_processor, job_processor)
-        missing = match_resume_to_job(resume_keywords, resume_phrases, job_keywords, job_phrases
+        missing = match_resume_to_job(job_keywords, resume_keywords, job_phrases, resume_phrases
                                       )
         print("+" * 40)
 
-        
+        # display jobs and resume 
         words_display = display(missing)
 
 
@@ -51,7 +51,6 @@ def home():
             {words_display}
             
         """
-
     return render_template("form.html")
 
 
