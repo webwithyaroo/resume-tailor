@@ -59,8 +59,7 @@ def display(resume_job_data: dict) -> str:
     
     score = ""
     if resume_job_data['score'] > 0:
-        score = f"<p>You matched {resume_job_data['matched_count']} out of {resume_job_data['total_required']} requirements.</p>"
-        score += f"<h3>{resume_job_data['score']:.2f}%</h3>"
+        score = f"<p>You matched {resume_job_data['matched_count']} out of {resume_job_data['total_required']} requirements. {resume_job_data['score']:.2f}%</p>"
         
     
     return extra_keywords_html + extra_phrases_html + missing_keywords_html + missing_phrases_html + matched_keywords_html + matched_phrases_html + score
