@@ -43,18 +43,44 @@ def home():
         
         
         print("Missing keywords:")
-        print(missing[0])
+        print(missing["keywords"])
         
         print("Missing phrases:")
-        print(missing[1])   
+        print(missing["phrases"])
         
 
-        # missing_phrases
+        # missing phrases
+        phrases_html = ""
+        if missing['phrases']:
+            phrases_html = f"""
+            <h2>Missing phrases:</h2>
+            <ul>
+                {"".join(f"<li>{phrase}</li>" for phrase in missing['phrases'])}
+            </ul>"""
+        
+        
+        # missing keywords 
+        keywords_html = ""
+        if missing['keywords']:
+            keywords_html = f"""
+            <h2>Missing keywords:</h2>
+            <ul>
+                {"".join(f"<li>{keyword}</li>" for keyword in missing['keywords'])}
+            </ul>"""
+        
+        
+        
+        
         return f"""
             <h2>Resume received</h2>
             <p>{resume[:50]} .....</p>
             <h2>Job description received</h2>
             <p>{job[:50]} ....</p>
+            
+            {keywords_html}
+            {phrases_html}
+                
+
         """
     
     return  render_template("form.html")

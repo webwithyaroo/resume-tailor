@@ -23,4 +23,6 @@ def match_resume_to_job(job_keywords, resume_keywords, job_phrases, resume_phras
     converting_missing_keywords = [*missing_keywords]
     converting_missing_phrases = [*missing_phrases]
     
-    return converting_missing_keywords, converting_missing_phrases
+    result = {"keywords": converting_missing_keywords, "phrases": converting_missing_phrases}
+    
+    return result
