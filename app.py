@@ -37,8 +37,8 @@ def home():
         
         
         # missing = match_resume_to_job(resume_processor, job_processor)
-        missing = match_resume_to_job(job_keywords, resume_keywords, job_phrases, resume_phrases)
-        
+        missing = match_resume_to_job(resume_keywords, resume_phrases, job_keywords,job_phrases
+)
         print("+" *40)
         
         
