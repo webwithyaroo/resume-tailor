@@ -16,22 +16,22 @@ def match_resume_to_job(resume_keywords, resume_phrases, job_keywords, job_phras
     missing_keywords = set(job_keywords) - set(resume_keywords)
     missing_phrases = set(job_phrases) - set(resume_phrases)
 
-    structured_missing_keywords = [sorted(missing_keywords)]
-    structured_missing_phrases = [sorted(missing_phrases)]
+    structured_missing_keywords = sorted(missing_keywords)
+    structured_missing_phrases = sorted(missing_phrases)
 
     # extracting the matching keywords and phrases from the resume and job
     matched_keywords = set(resume_keywords) & set(job_keywords)
     matched_phrases = set(resume_phrases) & set(job_phrases)
 
-    structured_matched_keywords = [sorted(matched_keywords)]
-    structured_matched_phrases = [sorted(matched_phrases)]
+    structured_matched_keywords = sorted(matched_keywords)
+    structured_matched_phrases = sorted(matched_phrases)
 
     # extracting the extra keywords and phrases from the resume that are not in the job description
     extra_keywords = set(resume_keywords) - set(job_keywords)
     extra_phrases = set(resume_phrases) - set(job_phrases)
 
-    structured_extra_keywords = [sorted(extra_keywords)]
-    structured_extra_phrases = [sorted(extra_phrases)]
+    structured_extra_keywords = sorted(extra_keywords)
+    structured_extra_phrases = sorted(extra_phrases)
 
     
     
@@ -53,6 +53,8 @@ def match_resume_to_job(resume_keywords, resume_phrases, job_keywords, job_phras
               "extra_phrases": structured_extra_phrases, 
               "matched_keywords": structured_matched_keywords, 
               "matched_phrases": structured_matched_phrases,
-              "score": total_score}
+              "score": total_score,
+              "matched_count": total_matched,
+              "total_required": total_required}
 
     return result

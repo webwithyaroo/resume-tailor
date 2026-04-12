@@ -2,14 +2,26 @@
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-nltk.download('stopwords')
-nltk.download('punkt')
+
+
+def _ensure_nltk_resources() -> None:
+    resources = (
+        ('corpora/stopwords', 'stopwords'),
+        ('tokenizers/punkt', 'punkt'),
+    )
+    for path, name in resources:
+        try:
+            nltk.data.find(path)
+        except LookupError:
+            nltk.download(name, quiet=True)
 
 
 def resume_tailor(resume_details)-> dict:
         
     """ This block of code filters stopwords from the resume and return a clean set of keywords"""
     
+    _ensure_nltk_resources()
+
     resume_keywords = []
     resume_phrases = []
     phrase_word_list = []

@@ -1,14 +1,26 @@
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-nltk.download('stopwords')
-nltk.download('punkt')
+
+
+def _ensure_nltk_resources() -> None:
+    resources = (
+        ('corpora/stopwords', 'stopwords'),
+        ('tokenizers/punkt', 'punkt'),
+    )
+    for path, name in resources:
+        try:
+            nltk.data.find(path)
+        except LookupError:
+            nltk.download(name, quiet=True)
 
 
 def job_description(job_details)-> dict:
     
     """ This block of code filters stopwords from the job and return a clean set of keywords"""
     
+    _ensure_nltk_resources()
+
     job_keywords = []
     job_phrases = []
     phrase_word_list = []

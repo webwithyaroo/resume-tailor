@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template
+from html import escape
 from resume import resume_tailor
 from job import job_description
 from matcher import match_resume_to_job
@@ -40,12 +41,14 @@ def home():
 
         # display jobs and resume
         words_display = display(resume_job_data)
+        safe_resume = escape(resume)
+        safe_job = escape(job)
 
         return f"""
             <h2>Resume received</h2>
-            <p>{resume[:50]} .....</p>
+            <p>{safe_resume[:50]} .....</p>
             <h2>Job description received</h2>
-            <p>{job[:50]} ....</p>
+            <p>{safe_job[:50]} ....</p>
             
             {words_display}
             
