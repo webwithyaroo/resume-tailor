@@ -6,7 +6,7 @@ nltk.download('stopwords')
 nltk.download('punkt')
 
 
-def resume_tailor(resume_details):
+def resume_tailor(resume_details)-> dict:
         
     """ This block of code filters stopwords from the resume and return a clean set of keywords"""
     
@@ -49,9 +49,9 @@ def resume_tailor(resume_details):
     # Filter words > 3 only
     resume_keywords += [ char for char in filter_keywords if len(char) >= 3]
     
-    
-    return resume_phrases, resume_keywords
-    
-    
+    result = {"keywords": resume_keywords, "phrases": resume_phrases}
+    return result
+
+
 if __name__ == "__main__":
     print("hello")

@@ -1,4 +1,4 @@
-def match_resume_to_job(job_keywords, resume_keywords, job_phrases, resume_phrases):
+def match_resume_to_job(job_keywords, resume_keywords, job_phrases, resume_phrases) -> dict:
     """
     Compares the keywords from the resume and job description and returns the missing keywords.
     

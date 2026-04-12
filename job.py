@@ -5,7 +5,7 @@ nltk.download('stopwords')
 nltk.download('punkt')
 
 
-def job_description(job_details)-> tuple[list, list]:
+def job_description(job_details)-> dict:
     
     """ This block of code filters stopwords from the job and return a clean set of keywords"""
     
@@ -49,8 +49,10 @@ def job_description(job_details)-> tuple[list, list]:
     job_keywords += [ char for char in filter_keywords if len(char) >= 3]
     
     
-    return job_phrases, job_keywords
+    result = {"keywords": job_keywords, "phrases": job_phrases}
     
+    
+    return result
     
 if __name__ == "__main__":
     print("hello")
