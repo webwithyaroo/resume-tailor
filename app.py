@@ -22,11 +22,8 @@ def home():
         
         # resume actions
         resume_processor = resume_tailor(resume_details = resume)
-        
-        # resume keywords and phrases
-        resume_phrases = resume_processor[0]
         resume_keywords = resume_processor[1]
-        
+        resume_phrases = resume_processor[0]
         
         
         
@@ -35,9 +32,12 @@ def home():
         
         # job actions
         job_processor = job_description(job_details = job)
+        job_keywords = job_processor[1]
+        job_phrases = job_processor[0]
         
         
-        missing = match_resume_to_job(resume_processor, job_processor)
+        # missing = match_resume_to_job(resume_processor, job_processor)
+        missing = match_resume_to_job(job_keywords, resume_keywords, job_phrases, resume_phrases)
         
         print("+" *40)
         

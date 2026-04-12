@@ -1,4 +1,4 @@
-def match_resume_to_job(resume_processor, job_processor):
+def match_resume_to_job(job_keywords, resume_keywords, job_phrases, resume_phrases):
     """
     Compares the keywords from the resume and job description and returns the missing keywords.
     
@@ -12,12 +12,6 @@ def match_resume_to_job(resume_processor, job_processor):
     
     
     # extracting the keywords and phrases from the resume and job description
-    resume_phrases = resume_processor[0]
-    resume_keywords = resume_processor[1]
-    
-    job_phrases = job_processor[0]
-    job_keywords = job_processor[1]
-    
     
     # comparing the resume and job description keywords
     missing_keywords = set(job_keywords) - set(resume_keywords)
