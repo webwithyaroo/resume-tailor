@@ -34,12 +34,26 @@ def match_resume_to_job(job_keywords, resume_keywords, job_phrases, resume_phras
     structured_extra_phrases = [*extra_phrases]
 
     
-
+    
+    # Score
+    
+    total_required = len(job_keywords) + len(job_phrases)
+    total_matched = len(matched_keywords) + len(matched_phrases)
+    
+    
+    total_score = (total_matched / total_required) * 100 if total_required > 0 else 0
+    
+    
+    
+    
+    
+    # structuring the result in a dictionary format
     result = {"missing_keywords": structured_missing_keywords, 
               "missing_phrases": structured_missing_phrases, 
               "extra_keywords": structured_extra_keywords,
               "extra_phrases": structured_extra_phrases, 
               "matched_keywords": structured_matched_keywords, 
-              "matched_phrases": structured_matched_phrases}
+              "matched_phrases": structured_matched_phrases,
+              "score": total_score}
 
     return result

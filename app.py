@@ -32,13 +32,13 @@ def home():
         job_keywords = job_processor["keywords"]
         job_phrases = job_processor["phrases"]
 
-        # missing = match_resume_to_job(resume_processor, job_processor)
-        missing = match_resume_to_job(job_keywords, resume_keywords, job_phrases, resume_phrases
+        # resume_job_data = match_resume_to_job(resume_processor, job_processor)
+        resume_job_data = match_resume_to_job(job_keywords, resume_keywords, job_phrases, resume_phrases
                                       )
         print("+" * 40)
 
         # display jobs and resume 
-        words_display = display(missing)
+        words_display = display(resume_job_data)
 
 
         
