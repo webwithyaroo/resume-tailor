@@ -2,7 +2,7 @@ from flask import Flask, request, render_template
 from resume import resume_tailor
 from job import job_description
 from matcher import match_resume_to_job
-
+from display import display
 app = Flask(__name__)
 
 
@@ -37,50 +37,19 @@ def home():
                                       )
         print("+" * 40)
 
-
-        #################### missing keywords and phrases ##########################################
-        print("Missing keywords:")
-        print(missing["missing_keywords"])
-        print(missing["missing_phrases"])
         
-        ################################ matched keywords and phrases ##########################################
-        print("Matched keywords:")
-        print(missing["matched_keywords"])
-        print(missing["matched_phrases"])
+        words_display = display(missing)
+
+
         
-        ########################################## extracted keywords and phrases ##########################################
-        print("Extra keywords:")
-        print(missing["extra_keywords"])
-        print(missing["extra_phrases"])
-
-        # missing phrases
-        phrases_html = ""
-        if missing['missing_phrases']:
-            phrases_html = f"""
-            <h2>Missing phrases:</h2>
-            <ul>
-                {"".join(f"<li>{phrase}</li>" for phrase in missing['missing_phrases'])}
-            </ul>"""
-
-        # missing keywords
-        keywords_html = ""
-        if missing['missing_keywords']:
-            keywords_html = f"""
-            <h2>Missing keywords:</h2>
-            <ul>
-                {"".join(f"<li>{keyword}</li>" for keyword in missing['missing_keywords'])}
-            </ul>"""
-
         return f"""
             <h2>Resume received</h2>
             <p>{resume[:50]} .....</p>
             <h2>Job description received</h2>
             <p>{job[:50]} ....</p>
             
-            {keywords_html}
-            {phrases_html}
-                
-
+            {words_display}
+            
         """
 
     return render_template("form.html")
