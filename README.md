@@ -14,6 +14,15 @@ Paste a job description. Get a tailored resume. Download as PDF
 3. AI rewrites resume bullets to match the job
 4. User downloads a styled PDF
 
+## 🎯The System Flow 
+1. Extract keywords and phrases from resume and job description
+2. Normalize and standardize them
+3. Compare using exact and rule-based matching
+4. Identify missing, matched, and extra elements
+5. Score the alignment
+6. Generate targeted suggestions for improvement
+
+
 ## Tech Stack
 - Python + Flask
 - OpenRouter API (AI rewriting)
