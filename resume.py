@@ -1,35 +1,25 @@
 
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
+import spacy
+
+# Load spaCy English model
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    print("Downloading spaCy model...")
+    import os
+    os.system("python -m spacy download en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
 
 
-def _ensure_nltk_resources() -> None:
-    resources = (
-        ('corpora/stopwords', 'stopwords'),
-        ('tokenizers/punkt', 'punkt'),
-    )
-    for path, name in resources:
-        try:
-            nltk.data.find(path)
-        except LookupError:
-            nltk.download(name, quiet=True)
-
-
-def resume_tailor(resume_details)-> dict:
-        
-    """ This block of code filters stopwords from the resume and return a clean set of keywords"""
+def resume_tailor(resume_details) -> dict:
+    """
+    This block of code filters stopwords from the resume and returns a clean set of keywords.
+    Uses spaCy for tokenization and POS tagging to extract meaningful words.
+    """
     
-    _ensure_nltk_resources()
-
     resume_keywords = []
     resume_phrases = []
-    phrase_word_list = []
     phrase_list = ["rest api", "machine learning"]
-    
-    
-    stop_words = set(stopwords.words("english"))
-    
     
     # Words to lowercase
     normalized_resume = resume_details.lower()
@@ -39,27 +29,23 @@ def resume_tailor(resume_details)-> dict:
         if phrase in normalized_resume:
             resume_phrases.append(phrase)
     
+    # Process with spaCy
+    doc = nlp(normalized_resume)
     
-    # Split normalized resume
-    tokens = word_tokenize(normalized_resume)
-    
-    # Remove stop-words
-    filter_token = [word for word in tokens if word not in stop_words]
-    
-    # Remove punctuation
-    clean_tokens = [char for char in filter_token if char.isalpha()]
-    
-    
+    # Extract phrase words to filter them out later
+    phrase_word_list = []
     for item in resume_phrases:
         phrase_word_list += item.split()
-        
-        
-    # Remove words part of the phrases
-    filter_keywords = [words for words in clean_tokens if words not in phrase_word_list]
     
-    
-    # Filter words > 3 only
-    resume_keywords += [ char for char in filter_keywords if len(char) >= 3]
+    # Extract keywords: filter stop words, punctuation, and words part of phrases
+    for token in doc:
+        # Skip if it's a stop word, punctuation, or part of a phrase
+        if token.is_stop or token.is_punct or token.text in phrase_word_list:
+            continue
+        
+        # Only keep words with length >= 3
+        if len(token.text) >= 3 and token.text.isalpha():
+            resume_keywords.append(token.text)
     
     result = {"keywords": resume_keywords, "phrases": resume_phrases}
     return result
