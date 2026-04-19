@@ -49,6 +49,19 @@ _NOISE_WORDS = {
     "october",
     "november",
     "december",
+    "include",
+    "includes",
+    "included",
+    "including",
+    "apply",
+    "applies",
+    "applied",
+    "analyze",
+    "analyzes",
+    "analyzed",
+    "help",
+    "helps",
+    "helped",
 }
 
 _COMPANY_SUFFIXES = {
@@ -164,6 +177,7 @@ DOMAIN_TERMS = {
     "deployment",
     "testing",
     "debugging",
+    "debug",
     "system design",
     "software development",
     "microservices",
@@ -216,6 +230,18 @@ GENERIC_TERMS = {
     "solutions",
     "innovative",
     "modern",
+    "include",
+    "apply",
+    "help",
+    "responsible",
+    "responsibility",
+    "analyze",
+    "join",
+    "support",
+    "document",
+    "documentation",
+    "practice",
+    "practices",
 }
 
 
@@ -233,6 +259,8 @@ nlp = _load_nlp()
 def _normalize_token_text(text: str) -> str:
     normalized = text.strip().lower()
     normalized = normalized.replace("/", "")
+    normalized = re.sub(r"(^[^a-z0-9]+|[^a-z0-9]+$)", "", normalized)
+    normalized = re.sub(r"(?<=[a-z])(?:[._-]?(?:\d+))+$", "", normalized)
     normalized = re.sub(r"[^a-z0-9+#.-]", "", normalized)
     return normalized
 
@@ -250,6 +278,9 @@ def is_too_generic(term: str, frequency: int, context_hits: int, category: str) 
     if normalized in GENERIC_TERMS:
         return True
 
+    if normalized in _NOISE_WORDS:
+        return True
+
     if category == "OTHER" and len(normalized) < 4:
         return True
 
@@ -264,6 +295,13 @@ def is_too_generic(term: str, frequency: int, context_hits: int, category: str) 
 
 def _chunk_is_company(chunk) -> bool:
     chunk_text = chunk.text.lower().strip()
+    if _normalize_token_text(chunk_text) in DOMAIN_TERMS:
+        return False
+
+    chunk_words = {_normalize_token_text(token.text) for token in chunk if _normalize_token_text(token.text)}
+    if chunk_words & DOMAIN_TERMS:
+        return False
+
     if any(suffix in chunk_text for suffix in _COMPANY_SUFFIXES):
         return True
     if chunk.root.ent_type_ == "ORG":
@@ -291,6 +329,10 @@ def _collect_noise_spans(doc):
 
     for ent in doc.ents:
         if ent.label_ == "ORG":
+            normalized_ent = _normalize_token_text(ent.text)
+            ent_tokens = {_normalize_token_text(token.text) for token in ent}
+            if normalized_ent in DOMAIN_TERMS or ent_tokens & DOMAIN_TERMS:
+                continue
             if any(_normalize_token_text(token.text) in _COMPANY_SUFFIXES for token in ent):
                 noise_spans.append((ent.start, ent.end, "company name"))
             else:
@@ -356,8 +398,18 @@ def extract_keywords(text: str) -> dict:
             )
             continue
 
+        if token.ent_type_ == "ORG" and token_text in DOMAIN_TERMS:
+            pass
+        elif token.ent_type_ == "ORG":
+            ignored_noise.append({"word": token.text, "reason": "organization"})
+            continue
+
         if token.like_num:
             ignored_noise.append({"word": token.text, "reason": "numeric token"})
+            continue
+
+        if re.fullmatch(r"\d+(?:[._-]\d+)*", token.text.strip()):
+            ignored_noise.append({"word": token.text, "reason": "numbering artifact"})
             continue
 
         if token_text in _NOISE_WORDS:
@@ -386,6 +438,10 @@ def extract_keywords(text: str) -> dict:
 
         if not re.search(r"[a-z]", candidate):
             ignored_noise.append({"word": token.text, "reason": "non-alphabetic token"})
+            continue
+
+        if candidate in GENERIC_TERMS:
+            ignored_noise.append({"word": token.text, "reason": "generic instruction word"})
             continue
 
         context_hits = 0

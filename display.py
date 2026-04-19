@@ -19,8 +19,11 @@ def _suggestion_for(keyword: str) -> str:
         "automation": "Mention a workflow you automated, such as testing or deployment",
         "deployment": "Describe a deployment pipeline, release flow, or production rollout",
         "debugging": "Show how you diagnosed and fixed issues in a real project",
+        "debug": "Show how you diagnosed and fixed issues in a real project",
         "system design": "Add an example of designing an API, service, or scalable workflow",
         "agile": "Reference sprint planning, standups, or iterative delivery",
+        "bachelor": "Mention your degree if the role requires one",
+        "degree": "Mention your degree if the role requires one",
     }
     return suggestion_map.get(keyword.lower(), "Tie it to a specific skill, project, or outcome")
 
@@ -33,6 +36,7 @@ def _pretty_term(term: str) -> str:
         "gcp": "GCP",
         "ml": "ML",
         "api": "API",
+        "debug": "Debugging",
     }
     lower = term.lower()
     if lower in exact:
@@ -86,6 +90,16 @@ def _render_ignored_noise(ignored_noise: dict) -> str:
     return "".join(f"<li>{word.title()} ({reason})</li>" for word, reason in top_items)
 
 
+def _render_requirement_gaps(items: list[dict]) -> str:
+    if not items:
+        return "<li>No explicit requirement gaps detected.</li>"
+
+    return "".join(
+        f"<li>{_pretty_term(item['term'])} → { _suggestion_for(item['term']) }</li>"
+        for item in items[:5]
+    )
+
+
 def _filter_matched_items(items: list[dict]) -> list[dict]:
     blocked = {
         "design",
@@ -118,6 +132,7 @@ def display(resume_job_data: dict) -> str:
     """Display result in concise recruiter-style summary format."""
     missing_ranked = _filter_matched_items(resume_job_data.get("ranked_missing", []))
     matched_ranked = _filter_matched_items(resume_job_data.get("ranked_matched", []))
+    requirement_gaps = resume_job_data.get("requirement_gaps", [])
 
     missing_top = missing_ranked[:5]
     matched_top = matched_ranked[:5]
@@ -154,6 +169,11 @@ def display(resume_job_data: dict) -> str:
     <h3>🔴 Top Missing (High Impact):</h3>
     <ul>
         {missing_html}
+    </ul>
+
+    <h3>📌 Requirement Gaps:</h3>
+    <ul>
+        {_render_requirement_gaps(requirement_gaps)}
     </ul>
 
     <h3>🟢 Matched:</h3>

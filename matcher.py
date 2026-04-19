@@ -70,6 +70,19 @@ def match_resume_to_job(
 
         return True
 
+    def _is_requirement(term: str) -> bool:
+        normalized = _normalize(term)
+        requirement_terms = {
+            "bachelor",
+            "degree",
+            "masters",
+            "phd",
+            "certification",
+            "diploma",
+            "university",
+        }
+        return normalized in requirement_terms
+
     def term_weight(term: str) -> int:
         normalized = _normalize(term)
         return job_phrase_counts.get(normalized, job_keyword_counts.get(normalized, 1))
@@ -127,6 +140,13 @@ def match_resume_to_job(
                     canonical[normalized] = item
         return canonical
 
+    def _validated_split(job_items, resume_items):
+        job_set = {_normalize(item) for item in job_items if _normalize(item)}
+        resume_set = {_normalize(item) for item in resume_items if _normalize(item)}
+        missing = sorted(job_set - resume_set)
+        matched = sorted(job_set & resume_set)
+        return missing, matched
+
     resume_keyword_map = _canonical_map(resume_keywords, resume_keyword_counts)
     job_keyword_map = _canonical_map(job_keywords, job_keyword_counts)
     resume_phrase_map = _canonical_map(resume_phrases, resume_phrase_counts)
@@ -138,6 +158,10 @@ def match_resume_to_job(
     # comparing the resume and job description keywords
     missing_terms = job_term_set - resume_term_set
     matched_terms = job_term_set & resume_term_set
+
+    validated_missing_terms, validated_matched_terms = _validated_split(job_term_set, resume_term_set)
+    missing_terms = set(validated_missing_terms)
+    matched_terms = set(validated_matched_terms)
 
     missing_keywords = [job_keyword_map[item] for item in missing_terms if item in job_keyword_map]
     missing_phrases = [job_phrase_map[item] for item in missing_terms if item in job_phrase_map]
@@ -163,6 +187,12 @@ def match_resume_to_job(
     
     ranked_missing = prioritize(structured_missing_keywords + structured_missing_phrases)
     ranked_matched = prioritize(structured_matched_keywords + structured_matched_phrases)
+
+    requirement_gaps = []
+    for item in ranked_missing:
+        if _is_requirement(item["term"]):
+            requirement_gaps.append(item)
+    ranked_missing = [item for item in ranked_missing if item not in requirement_gaps]
 
     # Weighted score calculation
     total_required = sum(job_keyword_counts.get(_normalize(k), 1) for k in set(job_keywords)) + sum(
@@ -192,6 +222,7 @@ def match_resume_to_job(
         "total_required": total_required,
         "ranked_missing": ranked_missing,
         "ranked_matched": ranked_matched,
+        "requirement_gaps": requirement_gaps,
         "ignored_noise": {
             "resume": resume_ignored_noise or [],
             "job": job_ignored_noise or [],
