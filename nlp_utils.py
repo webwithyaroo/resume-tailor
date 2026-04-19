@@ -151,6 +151,73 @@ _ROLE_CHUNKS = {
     "qa engineer",
 }
 
+DOMAIN_TERMS = {
+    "python",
+    "docker",
+    "kubernetes",
+    "aws",
+    "azure",
+    "gcp",
+    "ci/cd",
+    "cicd",
+    "cloud",
+    "deployment",
+    "testing",
+    "debugging",
+    "system design",
+    "software development",
+    "microservices",
+    "automation",
+    "api",
+    "rest api",
+    "machine learning",
+    "agile",
+    "scrum",
+    "pipeline",
+    "devops",
+    "git",
+    "linux",
+    "sql",
+    "javascript",
+    "typescript",
+    "react",
+    "node",
+    "flask",
+    "fastapi",
+    "communication",
+    "teamwork",
+    "collaboration",
+    "leadership",
+    "bachelor",
+    "degree",
+    "certification",
+    "university",
+}
+
+GENERIC_TERMS = {
+    "apply",
+    "analyze",
+    "help",
+    "join",
+    "manage",
+    "work",
+    "build",
+    "use",
+    "make",
+    "create",
+    "develop",
+    "support",
+    "task",
+    "responsibility",
+    "experience",
+    "skill",
+    "skills",
+    "solution",
+    "solutions",
+    "innovative",
+    "modern",
+}
+
 
 def _load_nlp():
     try:
@@ -168,6 +235,31 @@ def _normalize_token_text(text: str) -> str:
     normalized = normalized.replace("/", "")
     normalized = re.sub(r"[^a-z0-9+#.-]", "", normalized)
     return normalized
+
+
+def normalize_term(text: str) -> str:
+    return _normalize_token_text(text)
+
+
+def is_too_generic(term: str, frequency: int, context_hits: int, category: str) -> bool:
+    normalized = normalize_term(term)
+
+    if normalized in DOMAIN_TERMS:
+        return False
+
+    if normalized in GENERIC_TERMS:
+        return True
+
+    if category == "OTHER" and len(normalized) < 4:
+        return True
+
+    if frequency >= 2 and context_hits > 0:
+        return False
+
+    if frequency == 1 and context_hits == 0:
+        return True
+
+    return False
 
 
 def _chunk_is_company(chunk) -> bool:
@@ -294,6 +386,20 @@ def extract_keywords(text: str) -> dict:
 
         if not re.search(r"[a-z]", candidate):
             ignored_noise.append({"word": token.text, "reason": "non-alphabetic token"})
+            continue
+
+        context_hits = 0
+        for offset in (-2, -1, 1, 2):
+            neighbor_index = token.i + offset
+            if 0 <= neighbor_index < len(doc):
+                neighbor = doc[neighbor_index]
+                neighbor_text = _normalize_token_text(neighbor.text)
+                neighbor_lemma = _normalize_token_text(neighbor.lemma_)
+                if neighbor_text in DOMAIN_TERMS or neighbor_lemma in DOMAIN_TERMS:
+                    context_hits += 1
+
+        if is_too_generic(candidate, keyword_counts[candidate] + 1, context_hits, token.pos_):
+            ignored_noise.append({"word": token.text, "reason": "too generic without domain context"})
             continue
 
         keyword_counts[candidate] += 1

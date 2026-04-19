@@ -15,8 +15,14 @@ def _suggestion_for(keyword: str) -> str:
         "team": "Use team collaboration or cross-functional examples",
         "testing": "Mention unit, integration, or end-to-end testing",
         "cloud": "Name the specific cloud platform or service you used",
+        "python": "Add a Python project, API, automation script, or data task",
+        "automation": "Mention a workflow you automated, such as testing or deployment",
+        "deployment": "Describe a deployment pipeline, release flow, or production rollout",
+        "debugging": "Show how you diagnosed and fixed issues in a real project",
+        "system design": "Add an example of designing an API, service, or scalable workflow",
+        "agile": "Reference sprint planning, standups, or iterative delivery",
     }
-    return suggestion_map.get(keyword.lower(), "Connect it to a concrete skill, project, or outcome")
+    return suggestion_map.get(keyword.lower(), "Tie it to a specific skill, project, or outcome")
 
 
 def _pretty_term(term: str) -> str:

@@ -1,3 +1,6 @@
+from nlp_utils import normalize_term
+
+
 def match_resume_to_job(
     resume_keywords,
     resume_phrases,
@@ -29,7 +32,7 @@ def match_resume_to_job(
     job_phrase_counts = job_phrase_counts or {}
 
     def _normalize(term: str) -> str:
-        return term.lower().strip()
+        return normalize_term(term)
 
     def _is_meaningful(term: str, category: str) -> bool:
         normalized = _normalize(term)
@@ -109,16 +112,42 @@ def match_resume_to_job(
             )
         return sorted(ranked, key=lambda x: (-x["weight"], x["category"], x["term"]))
 
+    def _canonical_map(items, counts=None):
+        canonical = {}
+        counts = counts or {}
+        for item in items:
+            normalized = _normalize(item)
+            if not normalized:
+                continue
+            if normalized not in canonical:
+                canonical[normalized] = item
+            else:
+                existing = canonical[normalized]
+                if len(item) > len(existing):
+                    canonical[normalized] = item
+        return canonical
+
+    resume_keyword_map = _canonical_map(resume_keywords, resume_keyword_counts)
+    job_keyword_map = _canonical_map(job_keywords, job_keyword_counts)
+    resume_phrase_map = _canonical_map(resume_phrases, resume_phrase_counts)
+    job_phrase_map = _canonical_map(job_phrases, job_phrase_counts)
+
+    resume_term_set = set(resume_keyword_map) | set(resume_phrase_map)
+    job_term_set = set(job_keyword_map) | set(job_phrase_map)
+
     # comparing the resume and job description keywords
-    missing_keywords = set(job_keywords) - set(resume_keywords)
-    missing_phrases = set(job_phrases) - set(resume_phrases)
+    missing_terms = job_term_set - resume_term_set
+    matched_terms = job_term_set & resume_term_set
+
+    missing_keywords = [job_keyword_map[item] for item in missing_terms if item in job_keyword_map]
+    missing_phrases = [job_phrase_map[item] for item in missing_terms if item in job_phrase_map]
 
     structured_missing_keywords = sorted(missing_keywords)
     structured_missing_phrases = sorted(missing_phrases)
 
     # extracting the matching keywords and phrases from the resume and job
-    matched_keywords = set(resume_keywords) & set(job_keywords)
-    matched_phrases = set(resume_phrases) & set(job_phrases)
+    matched_keywords = [job_keyword_map[item] for item in matched_terms if item in job_keyword_map]
+    matched_phrases = [job_phrase_map[item] for item in matched_terms if item in job_phrase_map]
 
     structured_matched_keywords = sorted(matched_keywords)
     structured_matched_phrases = sorted(matched_phrases)
