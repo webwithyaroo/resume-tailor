@@ -24,6 +24,8 @@ def home():
         resume_processor = resume_tailor(resume_details=resume)
         resume_keywords = resume_processor["keywords"]
         resume_phrases = resume_processor["phrases"]
+        resume_keyword_counts = resume_processor.get("keyword_counts", {})
+        resume_phrase_counts = resume_processor.get("phrase_counts", {})
         resume_ignored_noise = resume_processor.get("ignored_noise", [])
 
         print("+" * 40)
@@ -33,6 +35,8 @@ def home():
         job_processor = job_description(job_details=job)
         job_keywords = job_processor["keywords"]
         job_phrases = job_processor["phrases"]
+        job_keyword_counts = job_processor.get("keyword_counts", {})
+        job_phrase_counts = job_processor.get("phrase_counts", {})
         job_ignored_noise = job_processor.get("ignored_noise", [])
 
         # resume_job_data = match_resume_to_job(resume_processor, job_processor)
@@ -43,6 +47,10 @@ def home():
             job_phrases,
             resume_ignored_noise,
             job_ignored_noise,
+            resume_keyword_counts,
+            job_keyword_counts,
+            resume_phrase_counts,
+            job_phrase_counts,
         )
 
         print("+" * 40)

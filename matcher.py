@@ -5,6 +5,10 @@ def match_resume_to_job(
     job_phrases,
     resume_ignored_noise=None,
     job_ignored_noise=None,
+    resume_keyword_counts=None,
+    job_keyword_counts=None,
+    resume_phrase_counts=None,
+    job_phrase_counts=None,
 ) -> dict:
     """
     Compares the keywords from the resume and job description and returns the missing keywords.
@@ -19,6 +23,92 @@ def match_resume_to_job(
     
     
     
+    resume_keyword_counts = resume_keyword_counts or {}
+    job_keyword_counts = job_keyword_counts or {}
+    resume_phrase_counts = resume_phrase_counts or {}
+    job_phrase_counts = job_phrase_counts or {}
+
+    def _normalize(term: str) -> str:
+        return term.lower().strip()
+
+    def _is_meaningful(term: str, category: str) -> bool:
+        normalized = _normalize(term)
+
+        stop_terms = {
+            "design",
+            "engineer",
+            "solution",
+            "solutions",
+            "innovation",
+            "innovations",
+            "inc",
+            "ltd",
+            "corp",
+            "company",
+            "role",
+            "position",
+            "experience",
+            "need",
+            "needs",
+            "looking",
+            "seeking",
+            "worked",
+            "work",
+            "using",
+            "used",
+            "built",
+        }
+
+        if normalized in stop_terms:
+            return False
+
+        if category == "OTHER" and len(normalized) < 4:
+            return False
+
+        return True
+
+    def term_weight(term: str) -> int:
+        normalized = _normalize(term)
+        return job_phrase_counts.get(normalized, job_keyword_counts.get(normalized, 1))
+
+    def categorize(term: str) -> str:
+        tech_terms = {
+            "python", "docker", "kubernetes", "aws", "azure", "gcp", "ci/cd", "cicd",
+            "git", "rest api", "machine learning", "cloud", "deployment", "testing",
+            "debugging", "system design", "software development", "microservices",
+        }
+        soft_terms = {
+            "communication", "teamwork", "leadership", "collaboration", "stakeholder",
+            "ownership", "mentoring", "adaptability", "agile",
+        }
+        education_terms = {
+            "bachelor", "masters", "degree", "phd", "university", "certification", "diploma",
+        }
+
+        normalized = _normalize(term)
+        if normalized in tech_terms:
+            return "TECH"
+        if normalized in soft_terms:
+            return "SOFT"
+        if normalized in education_terms:
+            return "EDUCATION"
+        return "OTHER"
+
+    def prioritize(items: list[str]) -> list[dict]:
+        ranked = []
+        for item in items:
+            category = categorize(item)
+            if not _is_meaningful(item, category):
+                continue
+            ranked.append(
+                {
+                    "term": item,
+                    "weight": term_weight(item),
+                    "category": category,
+                }
+            )
+        return sorted(ranked, key=lambda x: (-x["weight"], x["category"], x["term"]))
+
     # comparing the resume and job description keywords
     missing_keywords = set(job_keywords) - set(resume_keywords)
     missing_phrases = set(job_phrases) - set(resume_phrases)
@@ -42,9 +132,16 @@ def match_resume_to_job(
 
     
     
-    # Score calculation
-    total_required = len(job_keywords) + len(job_phrases)
-    total_matched = len(matched_keywords) + len(matched_phrases)
+    ranked_missing = prioritize(structured_missing_keywords + structured_missing_phrases)
+    ranked_matched = prioritize(structured_matched_keywords + structured_matched_phrases)
+
+    # Weighted score calculation
+    total_required = sum(job_keyword_counts.get(_normalize(k), 1) for k in set(job_keywords)) + sum(
+        job_phrase_counts.get(_normalize(p), 1) for p in set(job_phrases)
+    )
+    total_matched = sum(job_keyword_counts.get(_normalize(k), 1) for k in matched_keywords) + sum(
+        job_phrase_counts.get(_normalize(p), 1) for p in matched_phrases
+    )
     
     
     total_score = (total_matched / total_required) * 100 if total_required > 0 else 0
@@ -64,6 +161,8 @@ def match_resume_to_job(
         "score": total_score,
         "matched_count": total_matched,
         "total_required": total_required,
+        "ranked_missing": ranked_missing,
+        "ranked_matched": ranked_matched,
         "ignored_noise": {
             "resume": resume_ignored_noise or [],
             "job": job_ignored_noise or [],

@@ -9,8 +9,37 @@ def _suggestion_for(keyword: str) -> str:
         "aws": "Mention specific cloud services you have used",
         "azure": "Mention specific cloud services you have used",
         "gcp": "Mention specific cloud services you have used",
+        "design": "Mention system or API design in a project",
+        "engineer": "Focus on role-specific skills instead of the title",
+        "communication": "Show communication through teamwork or stakeholder work",
+        "team": "Use team collaboration or cross-functional examples",
+        "testing": "Mention unit, integration, or end-to-end testing",
+        "cloud": "Name the specific cloud platform or service you used",
     }
-    return suggestion_map.get(keyword.lower(), "Add this keyword to skills or achievement bullets")
+    return suggestion_map.get(keyword.lower(), "Connect it to a concrete skill, project, or outcome")
+
+
+def _pretty_term(term: str) -> str:
+    exact = {
+        "ci/cd": "CI/CD",
+        "cicd": "CI/CD",
+        "aws": "AWS",
+        "gcp": "GCP",
+        "ml": "ML",
+        "api": "API",
+    }
+    lower = term.lower()
+    if lower in exact:
+        return exact[lower]
+    return term.title()
+
+
+def _reason_from_weight(weight: int) -> str:
+    if weight >= 3:
+        return "required multiple times"
+    if weight == 2:
+        return "mentioned more than once"
+    return "required in this role"
 
 
 def _build_summary(score: float, missing_count: int, matched_count: int) -> str:
@@ -21,8 +50,8 @@ def _build_summary(score: float, missing_count: int, matched_count: int) -> str:
     if matched_count == 0:
         return "Your resume currently does not align with the key requirements for this role."
     if missing_count > matched_count:
-        return "Your resume matches some core technical requirements but is missing several important skills and concepts expected for this role."
-    return "Your resume has partial alignment with this role; strengthen it by adding missing keywords and clearer impact statements."
+        return "Your resume shows some alignment with the role but lacks several key technical and workflow-related requirements."
+    return "Your resume has partial alignment with this role; strengthen it with more specific technical impact and role-aligned terms."
 
 
 def _render_ignored_noise(ignored_noise: dict) -> str:
@@ -48,20 +77,48 @@ def _render_ignored_noise(ignored_noise: dict) -> str:
     if not top_items:
         return "<li>No major noise tokens detected.</li>"
 
-    return "".join(f"<li>{word} - {reason}</li>" for word, reason in top_items)
+    return "".join(f"<li>{word.title()} ({reason})</li>" for word, reason in top_items)
+
+
+def _filter_matched_items(items: list[dict]) -> list[dict]:
+    blocked = {
+        "design",
+        "engineer",
+        "solution",
+        "solutions",
+        "innovations",
+        "innovation",
+        "inc",
+        "ltd",
+        "corp",
+        "team",
+        "problem",
+        "solve",
+        "software",
+        "development",
+    }
+    meaningful = []
+    for item in items:
+        normalized = item["term"].lower().strip()
+        if normalized in blocked:
+            continue
+        if item["category"] == "OTHER" and len(normalized) < 4:
+            continue
+        meaningful.append(item)
+    return meaningful
 
 
 def display(resume_job_data: dict) -> str:
     """Display result in concise recruiter-style summary format."""
-    missing_items = resume_job_data["missing_keywords"] + resume_job_data["missing_phrases"]
-    matched_items = resume_job_data["matched_keywords"] + resume_job_data["matched_phrases"]
+    missing_ranked = _filter_matched_items(resume_job_data.get("ranked_missing", []))
+    matched_ranked = _filter_matched_items(resume_job_data.get("ranked_matched", []))
 
-    missing_top = missing_items[:5]
-    matched_top = matched_items[:5]
+    missing_top = missing_ranked[:5]
+    matched_top = matched_ranked[:5]
 
     missing_html = (
         "".join(
-            f"<li>{item} - {_suggestion_for(item)}</li>"
+            f"<li>{_pretty_term(item['term'])} - {_suggestion_for(item['term'])} ({_reason_from_weight(item['weight'])})</li>"
             for item in missing_top
         )
         if missing_top
@@ -69,7 +126,7 @@ def display(resume_job_data: dict) -> str:
     )
 
     matched_html = (
-        "".join(f"<li>{item}</li>" for item in matched_top)
+        "".join(f"<li>{_pretty_term(item['term'])}</li>" for item in matched_top)
         if matched_top
         else "<li>No strong matches identified yet.</li>"
     )
@@ -79,8 +136,8 @@ def display(resume_job_data: dict) -> str:
 
     summary = _build_summary(
         resume_job_data.get("score", 0),
-        len(missing_items),
-        len(matched_items),
+        len(missing_ranked),
+        len(matched_ranked),
     )
 
     return f"""
@@ -88,17 +145,17 @@ def display(resume_job_data: dict) -> str:
     <h3>Summary:</h3>
     <p>{summary}</p>
 
-    <h3>Missing (Top 5 only):</h3>
+    <h3>🔴 Top Missing (High Impact):</h3>
     <ul>
         {missing_html}
     </ul>
 
-    <h3>Matched (Top 5):</h3>
+    <h3>🟢 Matched:</h3>
     <ul>
         {matched_html}
     </ul>
 
-    <h3>Ignored/Noise:</h3>
+    <h3>⚪ Ignored (Non-relevant):</h3>
     <ul>
         {ignored_html}
     </ul>
