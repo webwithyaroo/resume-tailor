@@ -1,4 +1,11 @@
-def match_resume_to_job(resume_keywords, resume_phrases, job_keywords, job_phrases) -> dict:
+def match_resume_to_job(
+    resume_keywords,
+    resume_phrases,
+    job_keywords,
+    job_phrases,
+    resume_ignored_noise=None,
+    job_ignored_noise=None,
+) -> dict:
     """
     Compares the keywords from the resume and job description and returns the missing keywords.
 
@@ -47,14 +54,20 @@ def match_resume_to_job(resume_keywords, resume_phrases, job_keywords, job_phras
     
     
     # structuring the result in a dictionary format
-    result = {"missing_keywords": structured_missing_keywords, 
-              "missing_phrases": structured_missing_phrases, 
-              "extra_keywords": structured_extra_keywords,
-              "extra_phrases": structured_extra_phrases, 
-              "matched_keywords": structured_matched_keywords, 
-              "matched_phrases": structured_matched_phrases,
-              "score": total_score,
-              "matched_count": total_matched,
-              "total_required": total_required}
+    result = {
+        "missing_keywords": structured_missing_keywords,
+        "missing_phrases": structured_missing_phrases,
+        "extra_keywords": structured_extra_keywords,
+        "extra_phrases": structured_extra_phrases,
+        "matched_keywords": structured_matched_keywords,
+        "matched_phrases": structured_matched_phrases,
+        "score": total_score,
+        "matched_count": total_matched,
+        "total_required": total_required,
+        "ignored_noise": {
+            "resume": resume_ignored_noise or [],
+            "job": job_ignored_noise or [],
+        },
+    }
 
     return result
