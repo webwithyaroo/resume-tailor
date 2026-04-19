@@ -1,18 +1,18 @@
 # Resume Tailor
 
-> Paste a job description. Get a tailored resume. Download as PDF
+> Paste a resume and job description. Get a prioritized match analysis.
 
 ## Live Demo
 [Link here]
 
 # What it does
-Paste a job description. Get a tailored resume. Download as PDF
+Paste a resume and job description. Get a prioritized keyword/phrase match analysis.
 
 ## How It works
 1. User pastes their resume
 2. User pastes a job description
-3. AI rewrites resume bullets to match the job
-4. User downloads a styled PDF
+3. NLP extracts keywords and phrases
+4. App highlights matched, missing, and ignored items
 
 ## 🎯The System Flow 
 1. Extract keywords and phrases from resume and job description
@@ -25,8 +25,8 @@ Paste a job description. Get a tailored resume. Download as PDF
 
 ## Tech Stack
 - Python + Flask
-- OpenRouter API (AI rewriting)
-- WeasyPrint (PDF generation)
+- spaCy (NLP extraction and filtering)
+- OpenRouter API (planned future integration)
 
 ## Run Locally
 Step by step instruction here
@@ -66,7 +66,7 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 ```
-Then open `.env` and replace `your_key_here` with your actual Anthropic API key.
+Then open `.env` and replace `your_key_here` with your actual OpenRouter API key.
 
 
 ### 6. Run the app

@@ -83,9 +83,65 @@ def match_resume_to_job(
         }
         return normalized in requirement_terms
 
+    def _merge_requirement_concepts(items: list[dict]) -> list[dict]:
+        concept_map = {
+            "bachelor": ("bachelors_degree", "Bachelor's Degree"),
+            "degree": ("bachelors_degree", "Bachelor's Degree"),
+            "masters": ("masters_degree", "Master's Degree"),
+            "phd": ("phd", "PhD"),
+            "certification": ("certification", "Certification"),
+            "diploma": ("diploma", "Diploma"),
+            "university": ("university", "University Education"),
+        }
+
+        merged = {}
+        for item in items:
+            normalized = _normalize(item["term"])
+            concept_key, label = concept_map.get(normalized, (normalized, item["term"]))
+            if concept_key not in merged:
+                merged[concept_key] = {
+                    "term": concept_key,
+                    "label": label,
+                    "weight": item.get("weight", 1),
+                    "category": "EDUCATION",
+                    "priority": item.get("priority", item.get("weight", 1)),
+                }
+            else:
+                merged[concept_key]["weight"] = max(merged[concept_key]["weight"], item.get("weight", 1))
+                merged[concept_key]["priority"] = max(
+                    merged[concept_key]["priority"],
+                    item.get("priority", item.get("weight", 1)),
+                )
+
+        return sorted(merged.values(), key=lambda x: (-x["priority"], -x["weight"], x["label"]))
+
     def term_weight(term: str) -> int:
         normalized = _normalize(term)
         return job_phrase_counts.get(normalized, job_keyword_counts.get(normalized, 1))
+
+    def _priority_score(term: str, category: str, weight: int) -> int:
+        type_weight = {
+            "TECH": 4,
+            "WORKFLOW": 3,
+            "SOFT": 2,
+            "EDUCATION": 1,
+            "OTHER": 1,
+        }
+        critical_terms = {
+            "debug",
+            "debugging",
+            "system design",
+            "ci/cd",
+            "docker",
+            "aws",
+            "kubernetes",
+            "rest api",
+            "machine learning",
+        }
+
+        normalized = _normalize(term)
+        critical_bonus = 10 if normalized in critical_terms else 0
+        return (weight * 10) + (type_weight.get(category, 1) * 3) + critical_bonus
 
     def categorize(term: str) -> str:
         tech_terms = {
@@ -93,9 +149,12 @@ def match_resume_to_job(
             "git", "rest api", "machine learning", "cloud", "deployment", "testing",
             "debugging", "system design", "software development", "microservices",
         }
+        workflow_terms = {
+            "agile", "scrum", "kanban", "sprint", "standup", "jira", "retrospective",
+        }
         soft_terms = {
             "communication", "teamwork", "leadership", "collaboration", "stakeholder",
-            "ownership", "mentoring", "adaptability", "agile",
+            "ownership", "mentoring", "adaptability",
         }
         education_terms = {
             "bachelor", "masters", "degree", "phd", "university", "certification", "diploma",
@@ -104,6 +163,8 @@ def match_resume_to_job(
         normalized = _normalize(term)
         if normalized in tech_terms:
             return "TECH"
+        if normalized in workflow_terms:
+            return "WORKFLOW"
         if normalized in soft_terms:
             return "SOFT"
         if normalized in education_terms:
@@ -121,9 +182,10 @@ def match_resume_to_job(
                     "term": item,
                     "weight": term_weight(item),
                     "category": category,
+                    "priority": _priority_score(item, category, term_weight(item)),
                 }
             )
-        return sorted(ranked, key=lambda x: (-x["weight"], x["category"], x["term"]))
+        return sorted(ranked, key=lambda x: (-x["priority"], -x["weight"], x["category"], x["term"]))
 
     def _canonical_map(items, counts=None):
         canonical = {}
@@ -188,11 +250,12 @@ def match_resume_to_job(
     ranked_missing = prioritize(structured_missing_keywords + structured_missing_phrases)
     ranked_matched = prioritize(structured_matched_keywords + structured_matched_phrases)
 
-    requirement_gaps = []
+    requirement_gap_items = []
     for item in ranked_missing:
         if _is_requirement(item["term"]):
-            requirement_gaps.append(item)
-    ranked_missing = [item for item in ranked_missing if item not in requirement_gaps]
+            requirement_gap_items.append(item)
+    requirement_gaps = _merge_requirement_concepts(requirement_gap_items)
+    ranked_missing = [item for item in ranked_missing if not _is_requirement(item["term"])]
 
     # Weighted score calculation
     total_required = sum(job_keyword_counts.get(_normalize(k), 1) for k in set(job_keywords)) + sum(

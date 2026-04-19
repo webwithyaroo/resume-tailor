@@ -1,6 +1,4 @@
 import re
-import subprocess
-import sys
 from collections import Counter
 
 import spacy
@@ -249,11 +247,13 @@ def _load_nlp():
     try:
         return spacy.load("en_core_web_sm")
     except OSError:
-        subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
-        return spacy.load("en_core_web_sm")
+        # Fall back to a blank English pipeline when the model is unavailable.
+        # This keeps the app running in restricted/offline environments.
+        return spacy.blank("en")
 
 
 nlp = _load_nlp()
+_HAS_POS_TAGGER = nlp.has_pipe("tagger")
 
 
 def _normalize_token_text(text: str) -> str:
@@ -269,7 +269,7 @@ def normalize_term(text: str) -> str:
     return _normalize_token_text(text)
 
 
-def is_too_generic(term: str, frequency: int, context_hits: int, category: str) -> bool:
+def is_too_generic(term: str, frequency: int, context_hits: int, pos_tag: str) -> bool:
     normalized = normalize_term(term)
 
     if normalized in DOMAIN_TERMS:
@@ -281,7 +281,7 @@ def is_too_generic(term: str, frequency: int, context_hits: int, category: str) 
     if normalized in _NOISE_WORDS:
         return True
 
-    if category == "OTHER" and len(normalized) < 4:
+    if len(normalized) < 4 and pos_tag not in {"NOUN", "PROPN"}:
         return True
 
     if frequency >= 2 and context_hits > 0:
@@ -302,7 +302,7 @@ def _chunk_is_company(chunk) -> bool:
     if chunk_words & DOMAIN_TERMS:
         return False
 
-    if any(suffix in chunk_text for suffix in _COMPANY_SUFFIXES):
+    if chunk_words & _COMPANY_SUFFIXES:
         return True
     if chunk.root.ent_type_ == "ORG":
         return True
@@ -340,11 +340,12 @@ def _collect_noise_spans(doc):
         elif ent.label_ in _BLOCKED_ENTITY_TYPES:
             noise_spans.append((ent.start, ent.end, _ENTITY_REASON_MAP.get(ent.label_, "non-relevant entity")))
 
-    for chunk in doc.noun_chunks:
-        if _chunk_is_company(chunk):
-            noise_spans.append((chunk.start, chunk.end, "company suffix or organization"))
-        elif _chunk_is_job_title(chunk):
-            noise_spans.append((chunk.start, chunk.end, "job title"))
+    if doc.has_annotation("DEP"):
+        for chunk in doc.noun_chunks:
+            if _chunk_is_company(chunk):
+                noise_spans.append((chunk.start, chunk.end, "company suffix or organization"))
+            elif _chunk_is_job_title(chunk):
+                noise_spans.append((chunk.start, chunk.end, "job title"))
 
     return noise_spans
 
@@ -427,7 +428,7 @@ def extract_keywords(text: str) -> dict:
         if token_text in phrase_words or lemma_text in phrase_words:
             continue
 
-        if token.pos_ not in _ALLOWED_POS:
+        if _HAS_POS_TAGGER and token.pos_ not in _ALLOWED_POS:
             ignored_noise.append({"word": token.text, "reason": "low-signal part-of-speech"})
             continue
 

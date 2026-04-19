@@ -1,10 +1,7 @@
 def _suggestion_for(keyword: str) -> str:
     suggestion_map = {
         "docker": "Add to Skills or mention in a project",
-        "agile": "Include experience working in agile environments",
         "ci/cd": "Add deployment or pipeline experience",
-        "debugging": "Highlight debugging experience in projects",
-        "system design": "Mention system-level thinking if applicable",
         "kubernetes": "Add orchestration experience if you have it",
         "aws": "Mention specific cloud services you have used",
         "azure": "Mention specific cloud services you have used",
@@ -12,7 +9,8 @@ def _suggestion_for(keyword: str) -> str:
         "design": "Mention system or API design in a project",
         "engineer": "Focus on role-specific skills instead of the title",
         "communication": "Show communication through teamwork or stakeholder work",
-        "team": "Use team collaboration or cross-functional examples",
+        "team": "Show collaboration with teammates to deliver a feature or solve an issue",
+        "teamwork": "Show collaboration (e.g., worked with 3 engineers to deliver a feature)",
         "testing": "Mention unit, integration, or end-to-end testing",
         "cloud": "Name the specific cloud platform or service you used",
         "python": "Add a Python project, API, automation script, or data task",
@@ -24,6 +22,7 @@ def _suggestion_for(keyword: str) -> str:
         "agile": "Reference sprint planning, standups, or iterative delivery",
         "bachelor": "Mention your degree if the role requires one",
         "degree": "Mention your degree if the role requires one",
+        "bachelors_degree": "Mention your degree if the role requires one",
     }
     return suggestion_map.get(keyword.lower(), "Tie it to a specific skill, project, or outcome")
 
@@ -42,14 +41,6 @@ def _pretty_term(term: str) -> str:
     if lower in exact:
         return exact[lower]
     return term.title()
-
-
-def _reason_from_weight(weight: int) -> str:
-    if weight >= 3:
-        return "required multiple times"
-    if weight == 2:
-        return "mentioned more than once"
-    return "required in this role"
 
 
 def _build_summary(score: float, missing_count: int, matched_count: int) -> str:
@@ -95,9 +86,28 @@ def _render_requirement_gaps(items: list[dict]) -> str:
         return "<li>No explicit requirement gaps detected.</li>"
 
     return "".join(
-        f"<li>{_pretty_term(item['term'])} → { _suggestion_for(item['term']) }</li>"
+        f"<li>{item.get('label', _pretty_term(item['term']))} → {_suggestion_for(item['term'])}</li>"
         for item in items[:5]
     )
+
+
+def _render_missing_by_category(items: list[dict], category: str, limit: int = 5) -> str:
+    selected = [item for item in items if item.get("category") == category][:limit]
+    if not selected:
+        return "<li>No high-impact gaps found.</li>"
+
+    return "".join(
+        f"<li>{_pretty_term(item['term'])} - {_suggestion_for(item['term'])}</li>"
+        for item in selected
+    )
+
+
+def _top_matched(items: list[dict], limit: int = 5) -> list[dict]:
+    preferred_order = {"TECH": 0, "WORKFLOW": 1, "SOFT": 2, "EDUCATION": 3, "OTHER": 4}
+    return sorted(
+        items,
+        key=lambda x: (preferred_order.get(x.get("category", "OTHER"), 4), -x.get("priority", 0), x.get("term", "")),
+    )[:limit]
 
 
 def _filter_matched_items(items: list[dict]) -> list[dict]:
@@ -134,17 +144,11 @@ def display(resume_job_data: dict) -> str:
     matched_ranked = _filter_matched_items(resume_job_data.get("ranked_matched", []))
     requirement_gaps = resume_job_data.get("requirement_gaps", [])
 
-    missing_top = missing_ranked[:5]
-    matched_top = matched_ranked[:5]
+    missing_technical_html = _render_missing_by_category(missing_ranked, "TECH", limit=5)
+    missing_workflow_html = _render_missing_by_category(missing_ranked, "WORKFLOW", limit=5)
+    missing_soft_html = _render_missing_by_category(missing_ranked, "SOFT", limit=5)
 
-    missing_html = (
-        "".join(
-            f"<li>{_pretty_term(item['term'])} - {_suggestion_for(item['term'])} ({_reason_from_weight(item['weight'])})</li>"
-            for item in missing_top
-        )
-        if missing_top
-        else "<li>No critical missing keywords found.</li>"
-    )
+    matched_top = _top_matched(matched_ranked, limit=5)
 
     matched_html = (
         "".join(f"<li>{_pretty_term(item['term'])}</li>" for item in matched_top)
@@ -166,9 +170,19 @@ def display(resume_job_data: dict) -> str:
     <h3>Summary:</h3>
     <p>{summary}</p>
 
-    <h3>🔴 Top Missing (High Impact):</h3>
+    <h3>🔴 Missing Technical Skills:</h3>
     <ul>
-        {missing_html}
+        {missing_technical_html}
+    </ul>
+
+    <h3>🟡 Missing Workflow Skills:</h3>
+    <ul>
+        {missing_workflow_html}
+    </ul>
+
+    <h3>🟡 Missing Soft Skills:</h3>
+    <ul>
+        {missing_soft_html}
     </ul>
 
     <h3>📌 Requirement Gaps:</h3>

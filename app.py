@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template
 from html import escape
+import os
 from resume import resume_tailor
 from job import job_description
 from matcher import match_resume_to_job
@@ -73,4 +74,4 @@ def home():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=os.getenv("FLASK_DEBUG", "0") == "1")
